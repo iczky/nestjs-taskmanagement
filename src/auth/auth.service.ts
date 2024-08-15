@@ -1,4 +1,4 @@
-import {Injectable} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import {UsersService} from "../users/users.service";
 import * as bcrypt from 'bcryptjs';
 import {User} from "../users/entity/user.entity";
@@ -29,6 +29,6 @@ export class AuthService {
                 access_token: this.jwtService.sign(payload),
             }
         }
-        return null;
+        throw new UnauthorizedException('Invalid Credentials');
     }
 }
