@@ -13,25 +13,25 @@ export class ResponseInterceptor implements NestInterceptor {
         data
       })),
       catchError((err) => {
-        // You can customize the error response format here
         const response = context.switchToHttp().getResponse();
-        const status = response.statusCode || err.status || 500;
+        let status = 500;
+        let message = 'Internal server error';
+        let error = err.message;
 
-        if (err instanceof HttpException){
-          return throwError(() => ({
-            statusCode: status,
-            message: err.message || 'An error occurred',
-            error: err.getResponse(),
-            data: null,
-          }))
-        } else {
-          return throwError(() => ({
-            statusCode: status,
-            message: 'Internal server error',
-            error: err.message,
-            data: null,
-          }));
+        if (err instanceof HttpException) {
+          status = err.getStatus();
+          message = err.message;
+          error = err.getResponse();
         }
+
+        response.status(status);  // Set the correct status code
+
+        return throwError(() => ({
+          statusCode: status,
+          message: message,
+          error: error,
+          data: null,
+        }));
       }),
     );
   }

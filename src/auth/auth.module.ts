@@ -18,6 +18,6 @@ import { JwtUtilService } from './jwt-util.service';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, JwtUtilService],
-  exports: [JwtUtilService]
+  exports: [JwtUtilService, JwtModule, PassportModule]
 })
 export class AuthModule {}

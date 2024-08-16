@@ -7,6 +7,8 @@ import { Task } from './entity/task.entity';
 import { AuthService } from '../auth/auth.service';
 import { JwtService } from '@nestjs/jwt';
 import { JwtUtilService } from '../auth/jwt-util.service';
+import { GetUser } from '../auth/get-user.decorator';
+import { User } from '../users/entity/user.entity';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
@@ -19,11 +21,8 @@ export class TasksController {
   }
 
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto, @Req() req: any): Promise<Task> {
-    const token = req.headers.authorization.split(' ')[1];
-    console.log(token);
-    const userId: number = this.jwtUtilService.extractIdFromToken(token)
-    return this.taskService.create(createTaskDto, userId);
+  create(@Body() createTaskDto: CreateTaskDto, @GetUser() user: User): Promise<CreateTaskDto> {
+    return this.taskService.create(createTaskDto, user.id);
   }
 
   @Get()
@@ -32,18 +31,19 @@ export class TasksController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.taskService.findById(id);
+  findOne(@Param('id') id: number, @GetUser() user: User) {
+    console.log(user);
+    return this.taskService.findById(id, user.id);
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @Body() updateTaskDto: UpdateTaskDto) {
-    return this.taskService.update(id, updateTaskDto);
+  update(@Param('id') id: number, @Body() updateTaskDto: UpdateTaskDto, @GetUser() user: User) {
+    return this.taskService.update(id, updateTaskDto, user.id);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: number) {
-    return this.taskService.remove(id);
+  delete(@Param('id') id: number, @GetUser() user: User) {
+    return this.taskService.remove(id, user.id);
   }
 
   @Get('user/:id')
