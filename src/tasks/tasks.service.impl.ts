@@ -6,6 +6,8 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskService } from './interface/task-service.interface';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { User } from '../users/entity/user.entity';
+import { GetUserDto } from '../users/dto/get-user.dto';
+import { GetUser } from '../auth/get-user.decorator';
 
 @Injectable()
 export class TasksServiceImpl implements TaskService{
@@ -26,21 +28,36 @@ export class TasksServiceImpl implements TaskService{
     return createTaskDto;
   }
 
-  async findAll(): Promise<Task[]> {
-    return this.tasksRepository.find({relations: ['user']});
+  async findAll(userId: number): Promise<Task[]> {
+    return this.tasksRepository.find({
+      where: {
+        user: {id:userId}
+      }
+    })
+
   }
 
   async findById(id: number, userId: number): Promise<Task> {
-    const task = await this.tasksRepository.findOne({where:{id}, relations: ['user']});
+    const task = await this.tasksRepository.findOne({
+      where: {id},
+      relations: ['user'],
+    });
     if (!task){
       throw new NotFoundException(`Task with ID ${id} not found`)
     }
     if (task.user.id !== userId){
       console.log("task userid", task.user.id);
       console.log("task id", id);
+      console.log("userId", userId);
       throw new ForbiddenException(`User with ID ${userId} not found`)
     }
-    return task;
+
+    const userDto = GetUserDto.fromEntity(task.user)
+
+    return {
+      ...task,
+      user: userDto,
+    } as Task
   }
 
   async remove(id: number, userId: number): Promise<void> {
